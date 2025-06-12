@@ -86,7 +86,7 @@
             border-radius: 5px;
             margin-bottom: 20px;
         }
-        /* New styles for OVR-based row coloring */
+        /* Color coding for OVR ratings */
         .ovr-109 {
             background-color: #a5d6a7; /* medium green */
         }
@@ -191,8 +191,8 @@
     <script>
         // Player data for AQUA VS INFERNO event
         const players = [
-            { no: 1, week: 1, name: "Pele", ovr: 109, position: "ST", shardCost: 1500 },
-            { no: 2, week: 1, name: "Maradona", ovr: 109, position: "CAM", shardCost: 1500 },
+            { no: 1, week: "", name: "Pele", ovr: 109, position: "ST", shardCost: 1500 },
+            { no: 2, week: "", name: "Maradona", ovr: 109, position: "CAM", shardCost: 1500 },
             { no: 3, week: 1, name: "Cannavaro", ovr: 109, position: "CB", shardCost: 1000 },
             { no: 4, week: 1, name: "Di Maria", ovr: 108, position: "CAM", shardCost: 800 },
             { no: 5, week: 1, name: "Hernandez", ovr: 108, position: "ST", shardCost: 500 },
@@ -237,9 +237,12 @@
                 const rowClass = `ovr-${player.ovr}`;
                 row.className = rowClass;
 
+                // Handle empty week values
+                const weekDisplay = player.week !== "" ? player.week : "-";
+
                 row.innerHTML = `
                     <td>${player.no}</td>
-                    <td>${player.week}</td>
+                    <td>${weekDisplay}</td>
                     <td>${player.name}</td>
                     <td>${player.ovr}</td>
                     <td>${player.position}</td>
@@ -300,7 +303,10 @@
                 } else if (sortBy === 'shard-cost') {
                     comparison = a.shardCost - b.shardCost;
                 } else if (sortBy === 'week') {
-                    comparison = a.week - b.week;
+                    // Handle empty week values for sorting
+                    const weekA = a.week !== "" ? a.week : -1;
+                    const weekB = b.week !== "" ? b.week : -1;
+                    comparison = weekA - weekB;
                 }
 
                 return sortOrder === 'asc' ? comparison : -comparison;
@@ -374,7 +380,7 @@
                     <span>${preset.name}</span>
                     <div class="preset-actions">
                         <button class="load-preset-btn" data-name="${preset.name}">Load</button>
-                        <button class="delete-preset-btn" data-index="\${index}">Delete</button>
+                        <button class="delete-preset-btn" data-index="${index}">Delete</button>
                     </div>
                 `;
                 presetList.appendChild(presetItem);
@@ -466,10 +472,31 @@
             saveSettings();
         });
 
-        // New header click event for week column
         document.getElementById('week-header').addEventListener('click', () => {
             document.getElementById('sort-by').value = 'week';
             const currentOrder = document.getElementById('sort-order').value;
             document.getElementById('sort-order').value = currentOrder === 'asc' ? 'desc' : 'asc';
             updateTable();
-            save
+            saveSettings();
+        });
+
+        // Event listeners for preset buttons
+        document.getElementById('save-preset').addEventListener('click', savePreset);
+        document.getElementById('load-preset').addEventListener('click', loadPresets);
+
+        // Function to update the table
+        function updateTable() {
+            const filteredPlayers = filterPlayers();
+            const sortedPlayers = sortPlayers(filteredPlayers);
+            renderPlayerTable(sortedPlayers);
+        }
+
+        // Load settings and presets on page load
+        window.addEventListener('load', () => {
+            loadSettings();
+            loadPresets();
+            updateTable();
+        });
+    </script>
+</body>
+</html>
